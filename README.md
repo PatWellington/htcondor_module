@@ -178,7 +178,6 @@ This will unlock the ability to do the `file:///<path>` setup specified in other
 #### command to make a fake large file for branch testing:
 
 ```bash
-touch data.csv
 fsutil file createnew data.csv 104857600
 # 104857600 is equivalent to 100Mb in size
 ```
@@ -187,9 +186,10 @@ various sizes, names and file types also (not limited to shown above)
 
 #### Create a simple bash script to generate CSV data:
 
-An alternative solution that actually makes data with random values:
+An alternative solution of bash commandlines that will make a bash script that makes random values:
 
 ```bash
+# make the bash script to make a large csv for testing
 echo '#!/bin/bash' > generate_csv.sh
 echo 'echo "id,name,value,date" > data1.csv' >> generate_csv.sh
 echo 'for i in {1..1000000}; do' >> generate_csv.sh
@@ -202,3 +202,39 @@ chmod +x generate_csv.sh
 # Run it to generate the CSV
 ./generate_csv.sh
 ```
+
+## How to see remote/localised branches on new clone:
+When cloning the branch, a problem arises that the branches might not be seen. This is due to an incorrect git pushing of the submodule local branches.  
+to fix this, when pushing a submodule (local one) make sure to do:
+```bash 
+git push origin --all
+```
+instead of just 
+```bash
+ git push 
+ ```
+
+ In addition, on the cloned branch, need to do:
+ ```bash
+git fetch origin --prune
+git branch -a
+ ```
+ to be able to see all branches properly. 
+
+
+## Auto-setup the git push origin --all command
+to be able to make it so the issue of needing users to run `git push origin --all` isnt a thing, in the local submodule, run these commands:
+```bash
+git config push.default matching
+git config remote.pushdefault origin
+git config push default all
+```
+Now when the command `git push` is run with that submodule, it will actually run `git push origin --all`.
+
+## Auto-setup of git fetch and git branch
+to be able to make it so that the `fetch origin --prune` and `git branch -a` are baked into the commands, run:
+```bash
+git config fetch.prune true
+git config alias.branches 'branch -a'
+```
+This will mean users can just run `git fetch` and `git branches` to complete the above commands. 
