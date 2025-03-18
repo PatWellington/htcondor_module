@@ -227,7 +227,7 @@ to be able to make it so the issue of needing users to run `git push origin --al
 ```bash
 git config push.default matching
 git config remote.pushdefault origin
-git config push default all
+git config push.default all
 ```
 Now when the command `git push` is run with that submodule, it will actually run `git push origin --all`.
 
