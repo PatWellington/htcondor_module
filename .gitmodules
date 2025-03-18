@@ -1,0 +1,3 @@
+[submodule "data_storage"]
+	path = data_storage
+	url = file:///D:/work_pd/data_storage
