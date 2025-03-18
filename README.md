@@ -1,11 +1,12 @@
 # HTCondor Module
 
-This repository contains the HTCondor Module with a local data storage submodule. The data storage submodule is configured to use local storage rather than being hosted on GitHub.
+This repository contains the HTCondor Module with a local data storage submodule. The data storage submodule is configured to use local storage rather than being hosted on GitHub (or BitBucket for work).
 
 ## Repository Structure
 
 - `htcondor_module/`: Main module code
-- `data_storage/`: Submodule containing data (stored locally)
+- `data_storage/`: Submodule containing data (stored locally, to be faster and be able to bypass storage limits
+of using the bitbucket server)
 
 ## Setup Instructions
 
@@ -15,10 +16,11 @@ To clone this repository with the default data storage:
 
 ```bash
 # Clone with submodules
-git clone --recurse-submodules https://github.com/YOUR_USERNAME/htcondor_module.git
-
+git clone --recurse-submodules https://github.com/<username>/htcondor_module.git
+```
+```bash
 # Or clone normally then initialize submodules
-git clone https://github.com/YOUR_USERNAME/htcondor_module.git
+git clone https://github.com/<username>/htcondor_module.git
 cd htcondor_module
 git submodule init
 git submodule update
@@ -67,7 +69,7 @@ git commit -m "Initial commit for new data branch"
 git push -u origin <new_branch_name>
 ```
 
-## For Maintainers
+## For Maintaining the repo potentially
 
 ### Configuring Default Branch
 
@@ -113,3 +115,90 @@ git config --global protocol.file.allow always
 ```
 
 Then try the submodule operations again.
+
+### Creating a New Set of Data for a project, this must be followed
+
+A new branch of the submodule `data_storage` must be made, inheriting off of the main branch (it is an empty branch purposefully)
+
+To create a new branch that inherits all data from the main branch:
+
+```bash
+cd data_storage
+git checkout main
+git pull
+git checkout -b <new_branch_name>
+```
+### Post Completion of the project:
+
+```bash
+cd data_storage
+git add .
+git commit -m "Your changes on top of main branch"
+git push -u origin <new_branch_name>
+```
+
+### Commands used for the purpose of setting up the repo:
+
+#### stopping all branches being cloned on main module cloning:
+```bash
+git config -f .gitmodules submodule.data_storage.branch main
+```
+This command will set it up so that the only branch of a submodule which will be cloned when cloning and setting up the main branch will be the one listed at the end (in this case, main)
+
+#### creating a git repo which is locally stored:
+
+```bash 
+mkdir <repo_name>
+cd repo_name
+git init --bare
+```
+This will instantiate the bare repo which can be used for storage locally. 
+
+#### adding local storage repo as submodule:
+
+```bash 
+cd <main_repo>
+git submodule add <submodule_url> <localised_path_to_repo>
+```
+
+This will add the submodule designated locally (in first chevrons) and place it in the repo in location designated in the second set of chevrons. eg. want to add one called 'data' and have it in first tier of project, just do:
+
+```bash
+git submodule add file:///<local_path_to>/data data
+```
+
+If the submodule is a local one, the main repo will most likely require the command:
+
+```bash
+git config protocal.file.allow always
+```
+
+This will unlock the ability to do the `file:///<path>` setup specified in other processes.
+
+#### command to make a fake large file for branch testing:
+
+```bash
+touch data.csv
+fsutil file createnew data.csv 104857600
+# 104857600 is equivalent to 100Mb in size
+```
+This can be used to create files for testing purposes of 
+various sizes, names and file types also (not limited to shown above)
+
+#### Create a simple bash script to generate CSV data:
+
+An alternative solution that actually makes data with random values:
+
+```bash
+echo '#!/bin/bash' > generate_csv.sh
+echo 'echo "id,name,value,date" > data1.csv' >> generate_csv.sh
+echo 'for i in {1..1000000}; do' >> generate_csv.sh
+echo '  echo "$i,item$i,$RANDOM,2025-03-18" >> data1.csv' >> generate_csv.sh
+echo 'done' >> generate_csv.sh
+
+# Make it executable
+chmod +x generate_csv.sh
+
+# Run it to generate the CSV
+./generate_csv.sh
+```
